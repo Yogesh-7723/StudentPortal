@@ -1,0 +1,2 @@
+# StudentPortal
+school management system .
