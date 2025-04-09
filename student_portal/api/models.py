@@ -130,12 +130,12 @@ class Course_assign(models.Model):
     admission = models.DateTimeField(auto_now_add=True)
     expire_at = models.DateTimeField(blank=True,null=True)
 
-    def save(self,request,*args,**kwargs):
-        self.expire_at = (self.admission + timedelta(days=self.course.duration))
-        return super().save(*args,**kwargs)
+    def save(self, *args, **kwargs):
+        self.expire_at = self.admission + timedelta(days=self.course.duration)
+        return super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.course.course} assign to {self.student.username}"
+        return f"{self.course.course_name} assign to {self.student.username}"
     
 
 class Attendance(models.Model):
@@ -160,6 +160,8 @@ class Assign_Submit(models.Model):
     grade = models.CharField(max_length=5,blank=True,null=True)
     feedback = models.TextField()
     submited_at = models.DateTimeField(auto_now_add=True)
+    status = models.BooleanField(default=False)
+    check_by = models.CharField(max_length=250,blank=True,null=True)
      
 
     

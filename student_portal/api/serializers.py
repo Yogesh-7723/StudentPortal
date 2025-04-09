@@ -3,10 +3,23 @@ from .models import User,Course,Course_assign,Attendance,Assignment,Assign_Submi
 from django.contrib.auth.hashers import make_password
 
 
+
+
+
+
 PAYMENT_MOOD = [
         ('online','ONLINE MOOD'),
         ('offline','OFFLINE MOOD')
     ]
+
+
+
+class UserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'email', 'username', 'first_name', 'last_name']
+
+
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True,min_length=6,style={"input_type":"password"})
@@ -58,8 +71,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class CourseAssignSerializer(serializers.ModelSerializer):
 
-    student = serializers.StringRelatedField(read_only=True,many=True)
-    course = serializers.StringRelatedField(read_only=True,many=True)
+    student = UserSerializer(read_only=True)
+    course = CourseSerializer(read_only=True)
     payment_mood = serializers.ChoiceField(choices=PAYMENT_MOOD)
     class Meta:
         model = Course_assign
@@ -69,22 +82,22 @@ class CourseAssignSerializer(serializers.ModelSerializer):
 
 # attendance serialier classes...
 class AttendanceSerializer(serializers.ModelSerializer):
-    course = serializers.StringRelatedField(read_only=True,many=True)
+    course = CourseAssignSerializer(read_only=True)
     class Meta:
         model = Attendance
         fields = ['course','attendance']
 
 
 class AssignmentSerializer(serializers.ModelSerializer):
-
+    assign_course = CourseSerializer(read_only=True)
     class Meta:
         model = Assignment
         fields = ['assign_course','title','assignment','created_at','updated_at']
 
 
-class AssignmentSubmitSerialier(serializers.ModelSerializer):
-    student = serializers.StringRelatedField(read_only=True,many=True)
-    course = serializers.StringRelatedField(read_only=True,many=True)
+class AssignmentSubmitSerializer(serializers.ModelSerializer):
+    student = serializers.StringRelatedField(read_only=True)
+    course = CourseSerializer(read_only=True)
     class Meta:
         model = Assign_Submit
         fields = ['student','course','assign_file','total_mark','obtain_mark','grade','feedback','submited_at']

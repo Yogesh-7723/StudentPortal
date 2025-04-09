@@ -50,5 +50,5 @@ class AssignmentAdmin(admin.ModelAdmin):
 
 @admin.register(Assign_Submit)
 class AssignmentSubmitAdmin(admin.ModelAdmin):
-    list_display = ('student','course','assign_file','total_mark','obtain_mark','feedback','submited_at')
+    list_display = ('student','course','assign_file','total_mark','obtain_mark','feedback','submited_at','check_by','status')
    
