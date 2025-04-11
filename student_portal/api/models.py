@@ -8,7 +8,7 @@ from datetime import timedelta,datetime
 
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, username, password=None,**extra_fields):
+    def create_user(self, email, username, password,**extra_fields):
         
         if not email:
             raise ValueError("Users must have an email address")
@@ -23,7 +23,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, username, password=None,**extra_fields):
+    def create_superuser(self, email, username, password,**extra_fields):
         extra_fields.setdefault('is_active',True)
         extra_fields.setdefault('is_staff',True)
         extra_fields.setdefault('is_superuser',True)
@@ -130,12 +130,13 @@ class Course_assign(models.Model):
     payment_mood = models.CharField(choices=PAYMENT_MOOD,max_length=10)
     paid_fees = models.DecimalField(max_digits=10,decimal_places=2)
     due_fees = models.DecimalField(max_digits=10,decimal_places=2,default=0)
-    admission = models.DateTimeField(auto_now_add=True)
-    expire_at = models.DateTimeField(blank=True,null=True)
+    admission = models.DateTimeField(default=datetime.now())
+    expire_at = models.DateTimeField(default=datetime.now())
 
     def save(self, *args, **kwargs):
         self.expire_at = self.admission + timedelta(days=self.course.duration)
-        return super().save(*args, **kwargs)
+        self.due_fees = self.course.fees - self.paid_fees
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.course.course_name} assign to {self.student.username}"

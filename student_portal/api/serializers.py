@@ -34,15 +34,15 @@ class UserSerializer(serializers.ModelSerializer):
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True,min_length=6,style={"input_type":"password"})
-    confirm_password = serializers.CharField(write_only=True,min_length=6,style={"input_type":"password"})
+    conform_password = serializers.CharField(write_only=True,min_length=6,style={"input_type":"password"})
 
     class Meta:
         model = User
-        fields = ['email','username','password','confirm_password']
+        fields = ['email','username','password','conform_password']
 
     def validate(self, attrs):
         password = attrs.get('password')
-        password2 = attrs.pop('confirm_password')
+        password2 = attrs.pop('conform_password')
         if password != password2:
             raise serializers.ValidationError("Password and Conform Password doesn't match .")
         attrs['password'] = make_password(password)

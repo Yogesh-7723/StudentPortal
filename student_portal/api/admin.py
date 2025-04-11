@@ -1,12 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from .models import User,Course,Course_assign,Attendance,Assignment,Assign_Submit
+from django.contrib.auth.forms import UserCreationForm
 
 # Register your models here.
 
 
 class UserAdmin(BaseUserAdmin):
-    
+    add_form = UserCreationForm
     list_display = ('username','email','is_active','is_staff')
     list_filter = ('id','email','username')
     
@@ -19,7 +20,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = [
         (None, {
         "classes": ("wide",),
-        "fields": ("email", "username", "password"),
+        "fields": ("email", "username", "password1","password2"),
     }),
     ]
 
