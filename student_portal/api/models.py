@@ -115,6 +115,9 @@ class Course(models.Model):
         self.slug = slugify(self.course_name)
         super(Course,self).save(*args,**kwargs)
 
+    def __str__(self):
+        return self.course_name
+
 
 class Course_assign(models.Model):
     PAYMENT_MOOD = [

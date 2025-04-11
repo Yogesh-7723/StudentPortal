@@ -16,7 +16,13 @@ class UserAdmin(BaseUserAdmin):
         ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser","is_admin","is_student","is_faculty",'last_login')}),
     ]
 
-    add_fieldsets = [(None, {"fields": ("email", "password1",'password2')})]
+    add_fieldsets = [
+        (None, {
+        "classes": ("wide",),
+        "fields": ("email", "username", "password"),
+    }),
+    ]
+
 
     search_fields = ('email',)
     ordering = ('id',)
@@ -30,25 +36,35 @@ admin.site.register(User,UserAdmin)
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('id','course_name','description','fees','duration','faculty')
-    list_filter = ('course_name','faculty')
+    list_filter = ('course_name','faculty__username')
 
 
 @admin.register(Course_assign)
 class CourseAssignAdmin(admin.ModelAdmin):
-    list_display = ('id','student','payment_mood','paid_fees','due_fees','admission','expire_at')
+    list_display = ('id','student','course','payment_mood','paid_fees','due_fees','admission','expire_at')
+    search_fields = ['student__username', 'course__course_name']
+    readonly_fields = ('admission', 'expire_at')
 
 
 @admin.register(Attendance)
 class AttendanceAdmin(admin.ModelAdmin):
     list_display = ('course','attendance','atten_date')
+    readonly_fields = ('atten_date',)
+    list_select_related = ('course',)
 
 
 @admin.register(Assignment)
 class AssignmentAdmin(admin.ModelAdmin):
     list_display = ('assign_course','title','assignment','created_at','updated_at')
+    readonly_fields = ('created_at','updated_at')
+
+
 
 
 @admin.register(Assign_Submit)
 class AssignmentSubmitAdmin(admin.ModelAdmin):
     list_display = ('student','course','assign_file','total_mark','obtain_mark','feedback','submited_at','check_by','status')
+    readonly_fields = ('submited_at',)
+
+    
    

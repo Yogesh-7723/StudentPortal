@@ -16,16 +16,17 @@ class StudentReadOnlyPerm(permissions.BasePermission):
         
 class AdminFacultyPerm(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_student:
-            return False
-        else:
-            return True
+        return request.user.is_admin or request.user.is_faculty
+        
         
 class IsStudentPerm(permissions.BasePermission):
     def has_permission(self, request, view):
-        if request.user.is_student:
-            return True
+        if request.method in ("GET", "POST", 'HEAD', 'OPTIONS'):
+            if request.user.is_student:
+                True
+            else:
+                False
         else:
-            False
+            return False
     
 

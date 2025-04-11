@@ -2,7 +2,7 @@ from django.shortcuts import render
 from .models import User,Course,Course_assign,Attendance,Assignment,Assign_Submit
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from .serializers import RegisterSerializer,LoginSerializer,ChangePasswordSerializer,CourseSerializer,CourseAssignSerializer,AttendanceSerializer,AssignmentSubmitSerializer,AssignmentSerializer
+from .serializers import RegisterSerializer,LoginSerializer,ChangePasswordSerializer,CourseSerializer,CourseAssignSerializer,AttendanceSerializer,AssignmentCheckSerializer,AssignmentSerializer,MySubmitAssignSerializer,UserSerializer
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
@@ -66,6 +66,27 @@ class ChangePasswordView(APIView):
         return Response(serializer.errors,status=status.HTTP_400_BAD_REQUEST)
     
 
+class ProfileView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    def get(self,request,format=None):
+        email = request.user.email
+        profile = User.objects.get(email=email)
+        serializer = UserSerializer(profile)
+        return Response(serializer.data,content_type='application/json',status=status.HTTP_200_OK)
+    
+    def patch(self,request,format=None):
+        email = request.user.email
+        profile = User.objects.get(email=email)
+        serializer = UserSerializer(profile,data=request.data,partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data,content_type='application/json',status=status.HTTP_206_PARTIAL_CONTENT)
+        else:
+            return Response(serializer.errors,content_type='application/json',status=status.HTTP_400_BAD_REQUEST)
+
+    
+
 # permitted for admin and faculty only ...
 
 class CourseView(ModelViewSet):
@@ -96,9 +117,9 @@ class AssignmentView(ModelViewSet):
     permission_classes = [StudentReadOnlyPerm]
 
 
-class AssignmentSubmitView(ModelViewSet):
+class AssignmentCheckView(ModelViewSet):
     queryset = Assign_Submit.objects.all()
-    serializer_class = AssignmentSubmitSerializer
+    serializer_class = AssignmentCheckSerializer
     authentication_classes = [JWTAuthentication]
     permission_classes = [AdminFacultyPerm]
 
@@ -125,15 +146,49 @@ class StudentAttendanceView(APIView):
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsStudentPerm]
 
-    def get(self, request, format=None, pk=None):
+    def get(self, request, format=None):
+        try:
+            attendance = Attendance.objects.filter(course__student=request.user)
+            
+        except Attendance.DoesNotExist:
+            return Response({"error": "Attendance record not found"}, status=status.HTTP_404_NOT_FOUND)
+        
+        else:
+            serializer = AttendanceSerializer(attendance, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+        
+
+
+class MySubmitAssignView(APIView):
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsStudentPerm]
+    def get(self,request,format=None,pk=None):
         if pk is not None:
             try:
-                attendance = Attendance.objects.get(course__student=request.user, pk=pk)
-                serializer = AttendanceSerializer(attendance)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            except Attendance.DoesNotExist:
-                return Response({"error": "Attendance record not found"}, status=status.HTTP_404_NOT_FOUND)
+                myassign = Assign_Submit.objects.get(student=request.user,pk=pk)
+            except Exception as e:
+                return Response({"warning":e},content_type='application/json',status=status.HTTP_404_NOT_FOUND)
+            else:
+                serializer = AssignmentCheckSerializer(myassign)
+                return Response(serializer.data,content_type='application/json',status=status.HTTP_200_OK)
+        myassign = Assign_Submit.objects.filter(student=request.user)
+        serializer = MySubmitAssignSerializer(myassign,many=True)
+        return Response(serializer.data,content_type='application/json',status=status.HTTP_200_OK)
+    
+    def post(self,request,format=None):
+        serializer = MySubmitAssignSerializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data,content_type='application/json',status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors,content_type='application/json',status=status.HTTP_400_BAD_REQUEST)
+        
 
-        attendance = Attendance.objects.filter(course__student=request.user)
-        serializer = AttendanceSerializer(attendance, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+# admin profile control to any user...
+
+class AdminUserView(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAdminUser]

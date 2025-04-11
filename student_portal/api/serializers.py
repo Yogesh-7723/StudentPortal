@@ -17,7 +17,18 @@ PAYMENT_MOOD = [
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id', 'email', 'username', 'first_name', 'last_name']
+        fields = ['id', 'email', 'username', 'first_name', 'last_name','gender','contact','date_of_birth']
+
+
+    def update(self, instance, validated_data):
+        instance.username = validated_data.get('username',instance.username)
+        instance.first_name = validated_data.get('first_name',instance.first_name)
+        instance.last_name = validated_data.get('last_name',instance.last_name)
+        instance.gender = validated_data.get('gender',instance.gender)
+        instance.contact = validated_data.get('contact',instance.contact)
+        instance.date_of_birth = validated_data.get('date_of_birth',instance.date_of_birth)
+        instance.save()
+        return instance
 
 
 
@@ -95,9 +106,17 @@ class AssignmentSerializer(serializers.ModelSerializer):
         fields = ['assign_course','title','assignment','created_at','updated_at']
 
 
-class AssignmentSubmitSerializer(serializers.ModelSerializer):
+class AssignmentCheckSerializer(serializers.ModelSerializer):
     student = serializers.StringRelatedField(read_only=True)
     course = CourseSerializer(read_only=True)
     class Meta:
         model = Assign_Submit
         fields = ['student','course','assign_file','total_mark','obtain_mark','grade','feedback','submited_at']
+
+
+class MySubmitAssignSerializer(serializers.ModelSerializer):
+    student = serializers.StringRelatedField(read_only=True)
+    course = CourseSerializer(read_only=True)
+    class Meta:
+        model = Assign_Submit
+        fields = ['student','course','assign_file']
